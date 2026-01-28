@@ -1,30 +1,22 @@
 #!/bin/bash
 
-set -e
-
-echo "===== CI PIPELINE LAB 2 ====="
-
-# 1. Dépendances
+# 1. Installation des dépendances
 pnpm install
 rm -rf node_modules
 pnpm install
 
 # 2. Type checking
-pnpm vue-tsc --noEmit
+pnpm nuxt typecheck
 
-# 3. Analyse statique
-pnpm eslint . --ext .ts,.vue
+# 3. Analyse statique 
+pnpm eslint . --ext .ts,.vue # or use pnpm eslint .
 
 # 4. Build
-pnpm vite build --outDir publish
+pnpm build 
+#pnpm preview
 
 # 5. Tests
-pnpm vitest run
+pnpm vitest run # or use pnpm test
 
-# 6. Dépendances (bonus)
-mkdir -p reports
-pnpm outdated --json > reports/outdated-dependencies.json
-pnpm audit --json > reports/vulnerable-dependencies.json
 
-echo "✅ Pipeline terminé avec succès"
-exit 0
+

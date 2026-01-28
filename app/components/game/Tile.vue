@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  value: number
+  value: number;  
 }>()
 
 const tileConfig: Record<number, { bg: string; text: string; size: string }> = {
