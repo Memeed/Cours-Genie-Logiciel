@@ -1,0 +1,8 @@
+name: Ma première CI
+on: [push] # Se lance dès que tu envoies du code
+jobs:
+  hello-job:
+    runs-on: ubuntu-latest # Le robot utilise un ordinateur Linux
+    steps:
+      - name: Dire bonjour
+        run: echo "Hello pipelines' world !"
