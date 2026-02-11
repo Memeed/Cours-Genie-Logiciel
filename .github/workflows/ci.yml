@@ -1,10 +1,57 @@
 name: CI
-on: [push] # Se lance dès que tu envoies du code
-jobs:
-  hello-job:
-    runs-on: ubuntu-latest # Le robot utilise un ordinateur Linux
-    steps:
-      - name: Say Hello
-        run: echo "Hello pipelines' world !"
 
-      
+on:
+  push:
+    branches:
+      - '**'
+  schedule:
+    - cron: '0 8 * * *'   # Tous les jours à 8h UTC
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Récupération du code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Node
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      # 3️⃣ Setup pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      # 4️⃣ Installation des dépendances
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 5️⃣ Vérification du typage statique
+      - name: Type check
+        run: pnpm nuxt typecheck
+
+      # 6️⃣ Analyse statique (lint)
+      - name: Lint
+        run: pnpm eslint . --ext .ts,.vue
+
+      # 7️⃣ Build du package
+      - name: Build
+        run: pnpm build
+
+      # 8️⃣ Exécution des tests
+      - name: Run tests
+        run: pnpm vitest run
+
+      # 9️⃣ Publication de l’artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuxt-build
+          path: .output
