@@ -1,3 +1,5 @@
+import { useGameState } from '#imports'
+
 type Grid = [number[], number[], number[], number[]]
 
 export const useGameLogic = () => {

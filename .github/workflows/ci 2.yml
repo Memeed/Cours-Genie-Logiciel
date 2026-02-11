@@ -4,7 +4,6 @@ on:
   push:
   schedule:
     - cron: '0 8 * * *'
-  workflow_dispatch:
 
 jobs:
   lint-typecheck:
@@ -24,7 +23,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm nuxt typecheck
-      - run: pnpm eslint .
+      - run: pnpm eslint . --ext .ts,.vue
 
   test:
     runs-on: ubuntu-latest
