@@ -1,65 +1,122 @@
 name: CI
 
+env:
+  NODE_VERSION: 20
+
 on:
   push:
-    branches:
-      - lab04
+    branches: [lab04]
     paths-ignore:
       - "docs/**"
-
   pull_request:
-    branches:
-      - lab04
+    branches: [lab04]
     paths-ignore:
       - "docs/**"
-
   workflow_dispatch:
+    inputs:
+      launchStaticAnalysis:
+        description: "Whether to launch static analysis (linting and type checking) on pull request"
+        required: false
+        type: boolean
+        default: true
+      environment:
+        description: "The environment to run the CI workflow in"
+        required: false
+        type: choice
+        default: QA
+        options:
+          - QA
+          - PROD
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 10.28.2
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 20
-          cache: "pnpm"
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Upload artifact
+      - name: Build
+        run: pnpm build
+
+      - name: Upload build artifact
         if: github.event_name == 'push'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: nuxt-build
-          path: .output/public
-
-  lint-typecheck:
+          name: 2048-app-build
+          path: .output/
+          retention-days: ${{ github.ref_name == 'main' && 7 || 1 }}
+  lint:
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v3
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 10.28.2
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 20
-          cache: "pnpm"
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm nuxt typecheck
-      - run: pnpm eslint .
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare Nuxt
+        run: pnpm nuxt prepare
+
+      - name: Lint
+        run: pnpm lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.28.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare Nuxt
+        run: pnpm nuxt prepare
+
+      - name: Type checking
+        run: pnpm typecheck
 
   test:
     runs-on: ubuntu-latest
@@ -67,16 +124,25 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v3
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 10.28.2
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 20
-          cache: "pnpm"
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm vitest run
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare Nuxt
+        run: pnpm nuxt prepare
+
+      - name: Run tests
+        run: pnpm test
