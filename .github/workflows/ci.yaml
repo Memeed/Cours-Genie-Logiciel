@@ -53,7 +53,7 @@ jobs:
 
       - name: Upload build artifact
         if: github.event_name == 'push'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: 2048-app-build
           path: .output/
