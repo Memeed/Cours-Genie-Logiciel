@@ -1,0 +1,72 @@
+stages:
+  - build
+  - analysis
+  - test
+  - deploy
+
+image: node:20
+
+variables:
+  NODE_VERSION: "20"
+
+cache:
+  paths:
+    - node_modules/
+    - .pnpm-store
+
+before_script:
+  - npm install -g pnpm
+  - pnpm install --frozen-lockfile
+
+build:
+  stage: build
+  script:
+    - pnpm build
+  artifacts:
+    name: "2048-app-build"
+    paths:
+      - .output
+    expire_in: $ARTIFACT_EXPIRE
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        ARTIFACT_EXPIRE: "1 week"
+    - when: always
+      variables:
+        ARTIFACT_EXPIRE: "1 day"
+
+lint:
+  stage: analysis
+  needs: ["build"]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  script:
+    - pnpm nuxt prepare
+    - pnpm lint
+
+typecheck:
+  stage: analysis
+  needs: ["build"]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  script:
+    - pnpm nuxt prepare
+    - pnpm typecheck
+
+test:
+  stage: test
+  needs: ["build"]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  script:
+    - pnpm nuxt prepare
+    - pnpm test
+
+deploy:
+  stage: deploy
+  needs: ["build"]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+  script:
+    - echo "Deploying to $ENVIRONMENT"
