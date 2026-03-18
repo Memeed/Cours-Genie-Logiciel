@@ -39,3 +39,22 @@ jobs:
           name: 2048-app-build
           path: .output/
           retention-days: 1
+
+  production:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/lab05'
+    environment:
+      name: production
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: 2048-app-build
+          path: .output
+
+      - name: Deploy to Vercel
+        run: npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --confirm
