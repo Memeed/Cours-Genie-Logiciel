@@ -37,8 +37,10 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: 2048-app-build
-          path: .output/
+          path: .output
           retention-days: 1
+      - name: Debug files
+        run: ls -la
 
   production:
     needs: build
