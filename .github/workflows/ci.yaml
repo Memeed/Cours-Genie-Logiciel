@@ -37,7 +37,8 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: 2048-app-build
-          path: .
+          path: .output
+          include-hidden-files: true
           retention-days: 1
       - name: Debug files
         run: ls -la
@@ -56,7 +57,6 @@ jobs:
         uses: actions/download-artifact@v6
         with:
           name: 2048-app-build
-          path: .
-
+          path: .output
       - name: Deploy to Vercel
         run: npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --confirm
