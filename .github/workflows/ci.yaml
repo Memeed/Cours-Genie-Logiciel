@@ -40,8 +40,6 @@ jobs:
           path: .output
           include-hidden-files: true
           retention-days: 1
-      - name: Debug files
-        run: ls -la
 
   production:
     needs: build
@@ -51,8 +49,6 @@ jobs:
       name: production
 
     steps:
-      - uses: actions/checkout@v6
-
       - name: Download build artifact
         uses: actions/download-artifact@v6
         with:
@@ -60,3 +56,21 @@ jobs:
           path: .output
       - name: Deploy to Vercel
         run: npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --confirm
+
+  preview:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: 2048-app-build
+          path: .output
+
+      - name: Deploy to Vercel (Preview)
+        run: npx vercel --token=${{ secrets.VERCEL_TOKEN }} --confirm
